@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilha MCASP 11ª Edição - Professor Moreira</title>
+<style>
+:root{
+  --azul:#0b1f4d; --azul2:#123c7c; --rosa:#ffb6d9; --verde:#b8f7c1;
+  --branco:#fff; --cinza:#f4f6fb; --texto:#10203f; --vermelho:#b91c1c;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#071331,#112e62);color:var(--texto)}
+.app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--cinza);position:relative;padding-bottom:96px}
+header{background:var(--azul);color:#fff;padding:16px 14px;text-align:center;border-bottom:5px solid #ffb6d9}
+header h1{font-size:20px;margin:0 0 6px;line-height:1.15}
+header p{font-size:13px;margin:0;opacity:.95}
+.screen{display:none;padding:16px}.screen.active{display:block}
+.cardBox{background:#fff;border-radius:18px;padding:18px;box-shadow:0 8px 22px rgba(0,0,0,.12);margin:12px 0}
+input{width:100%;padding:14px;border:2px solid #d7def0;border-radius:14px;font-size:17px}
+.btn{border:none;border-radius:14px;padding:13px 14px;font-weight:800;font-size:15px;cursor:pointer;margin:5px;background:var(--azul2);color:#fff}
+.btn.secondary{background:#fff;color:var(--azul);border:2px solid var(--azul)}
+.btn.danger{background:#7f1d1d}.btn.green{background:#15803d}.btn.pink{background:#be185d}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:430px;width:100%;background:#fff;border-top:2px solid #dbe3f4;padding:8px;display:flex;justify-content:space-around;gap:4px;z-index:9}
+.nav .btn{font-size:13px;padding:11px 8px;flex:1;margin:0}
+.progress{height:10px;background:#dbe3f4;border-radius:20px;overflow:hidden;margin:10px 0}.bar{height:100%;background:#16a34a;width:0%}
+.trilha{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.step{padding:10px 4px;border-radius:12px;text-align:center;font-weight:800;font-size:12px;background:#e5e7eb;color:#1f2937}
+.step.done{background:#bbf7d0}.step.now{background:#bfdbfe;border:2px solid var(--azul2)}
+.flip{perspective:1000px;margin-top:15px}.flipInner{position:relative;width:100%;min-height:330px;transition:transform .65s;transform-style:preserve-3d}.flipInner.virado{transform:rotateY(180deg)}
+.face{position:absolute;width:100%;min-height:330px;backface-visibility:hidden;border-radius:22px;padding:20px;box-shadow:0 10px 24px rgba(0,0,0,.16);display:flex;flex-direction:column;justify-content:center;text-align:center;border:3px solid #fff}
+.front{background:var(--rosa)}.back{background:var(--verde);transform:rotateY(180deg)}
+.face small{font-weight:900;color:#344}.face h2{font-size:23px;margin:12px 0}.face p{font-size:19px;line-height:1.35;font-weight:700}
+.options{display:flex;flex-direction:column;gap:10px;margin-top:14px}.opt{background:#fff;border:2px solid #d6dceb;border-radius:14px;padding:13px;text-align:left;font-size:16px;font-weight:700}
+.opt.correct{background:#bbf7d0;border-color:#16a34a}.opt.wrong{background:#fecaca;border-color:#dc2626}
+.badge{display:inline-block;background:#e0e7ff;color:#1e3a8a;border-radius:20px;padding:7px 11px;font-size:12px;font-weight:900;margin-bottom:8px}
+h2{color:var(--azul);margin-top:0}.muted{color:#526070;font-size:14px}.score{display:grid;grid-template-columns:1fr 1fr;gap:10px}.score div{background:#fff;border-radius:14px;padding:12px;text-align:center;font-weight:900}
+.footerNote{text-align:center;font-size:12px;color:#fff;background:var(--azul);padding:8px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<h1>📚 Trilha MCASP 11ª Edição</h1>
+<p>Curso de Contabilidade Professor Moreira • Flashcards + Quiz FGV</p>
+</header>
+
+<section id="home" class="screen active">
+  <div class="cardBox">
+    <h2>Bem-vindo à trilha</h2>
+    <p class="muted">Estude na ordem do MCASP: Parte Geral, Parte I, Parte II, Parte III, Parte IV e Parte V.</p>
+    <label><b>Nome do aluno:</b></label><br><br>
+    <input id="student" placeholder="Digite seu nome">
+    <br><br>
+    <button class="btn green" onclick="start()">🚀 Começar trilha</button>
+    <button class="btn secondary" onclick="continueStudy()">▶️ Continuar de onde parei</button>
+    <button class="btn pink" onclick="sendProgress()">📤 Enviar progresso ao professor</button>
+  </div>
+  <div class="cardBox">
+    <h2>🎯 Como funciona</h2>
+    <p>1️⃣ Leia o cartão rosa.<br>2️⃣ Toque para virar e estudar o verso verde.<br>3️⃣ Faça o quiz no estilo FGV.<br>4️⃣ Avance pelos capítulos do MCASP.</p>
+  </div>
+</section>
+
+<section id="flash" class="screen">
+  <div class="badge" id="cardPart"></div>
+  <div class="progress"><div class="bar" id="cardBar"></div></div>
+  <div class="trilha" id="trail"></div>
+  <div class="flip" onclick="flipCard()">
+    <div class="flipInner" id="flipInner">
+      <div class="face front">
+        <small>FRENTE ROSA</small>
+        <h2 id="cardTitle"></h2>
+        <p id="cardFront"></p>
+        <small>Toque no cartão para virar</small>
+      </div>
+      <div class="face back">
+        <small>VERSO VERDE</small>
+        <h2>Explicação</h2>
+        <p id="cardBack"></p>
+        <small>Toque novamente para voltar</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="quiz" class="screen">
+  <div class="badge" id="qPart"></div>
+  <div class="progress"><div class="bar" id="qBar"></div></div>
+  <div class="cardBox">
+    <h2 id="qTitle"></h2>
+    <p id="qText" style="font-size:18px;font-weight:700;line-height:1.35"></p>
+    <div class="options" id="options"></div>
+  </div>
+</section>
+
+<section id="comment" class="screen">
+  <div class="cardBox">
+    <h2 id="resultTitle"></h2>
+    <p id="explain" style="font-size:18px;line-height:1.4"></p>
+    <button class="btn green" onclick="nextQuestion()">Próxima questão ➜</button>
+  </div>
+</section>
+
+<section id="final" class="screen">
+  <div class="cardBox">
+    <h2 id="finalTitle">🏆 Parabéns!</h2>
+    <p id="finalText"></p>
+    <div class="score">
+      <div>✅ Acertos<br><span id="hits">0</span></div>
+      <div>❌ Erros<br><span id="miss">0</span></div>
+    </div>
+    <br>
+    <button class="btn green" onclick="restart()">🔄 Estudar novamente</button>
+    <button class="btn pink" onclick="sendProgress()">📤 Enviar conclusão ao professor</button>
+  </div>
+</section>
+
+<div class="nav">
+  <button class="btn secondary" onclick="goBack()">⬅️ Voltar</button>
+  <button class="btn secondary" onclick="showHome()">🏠 Início</button>
+  <button class="btn danger" onclick="restart()">🔄 Reiniciar</button>
+  <button class="btn" onclick="goNext()">Ir ➡️</button>
+</div>
+<div class="footerNote">Curso de Contabilidade Professor Moreira</div>
+</div>
+
+<script>
+const cards = [["PARTE GERAL • Contextualização", "CASP", "A Contabilidade Aplicada ao Setor Público registra, controla e evidencia atos e fatos da gestão pública, permitindo prestação de contas e controle social."], ["PARTE GERAL • PCASP", "Plano de Contas Aplicado ao Setor Público", "O PCASP padroniza os registros contábeis e separa as naturezas patrimonial, orçamentária e de controle."], ["PARTE GERAL • Aspectos da CASP", "Orçamentário, Patrimonial e Fiscal", "Orçamentário: execução do orçamento. Patrimonial: ativos, passivos e variações. Fiscal: indicadores e limites da LRF."], ["PARTE GERAL • Características qualitativas", "Informação contábil útil", "Relevância, representação fidedigna, compreensibilidade, tempestividade, comparabilidade e verificabilidade."], ["PARTE I • Princípios orçamentários", "Base do orçamento público", "Unidade, universalidade, anualidade, exclusividade, orçamento bruto, legalidade, publicidade, transparência e não vinculação de impostos."], ["PARTE I • Receita orçamentária", "Conceito", "Ingresso de recursos que aumenta disponibilidades financeiras e viabiliza a execução das políticas públicas, podendo ser corrente ou de capital."], ["PARTE I • Etapas da receita", "Previsão, lançamento, arrecadação e recolhimento", "A arrecadação ocorre quando o contribuinte paga ao agente arrecadador; o recolhimento ocorre quando o valor chega à conta do Tesouro."], ["PARTE I • Despesa orçamentária", "Classificação por natureza", "Estrutura essencial: categoria econômica, grupo de natureza da despesa, modalidade de aplicação e elemento de despesa."], ["PARTE I • Etapas da despesa", "Empenho, liquidação e pagamento", "Empenho reserva dotação; liquidação verifica o direito adquirido pelo credor; pagamento extingue a obrigação financeira."], ["PARTE I • Restos a pagar", "Processados e não processados", "Processados: despesa liquidada e não paga. Não processados: despesa empenhada e ainda não liquidada."], ["PARTE I • Fonte/Destinação", "Controle da vinculação dos recursos", "A fonte ou destinação permite acompanhar a origem e a aplicação dos recursos, especialmente os vinculados."], ["PARTE II • Elementos patrimoniais", "Ativo, passivo, PL, VPA e VPD", "O enfoque patrimonial reconhece bens, direitos, obrigações e variações patrimoniais pelo regime de competência."], ["PARTE II • Ativo", "Recurso controlado", "Ativo é recurso controlado pela entidade como resultado de evento passado e com potencial de serviços ou benefícios econômicos futuros."], ["PARTE II • Passivo", "Obrigação presente", "Passivo é obrigação presente decorrente de evento passado, cuja extinção deve resultar em saída de recursos da entidade."], ["PARTE II • Estoques", "Mensuração", "Estoques são mensurados pelo menor valor entre custo histórico e valor realizável líquido; quando distribuídos gratuitamente, atenção ao custo de reposição."], ["PARTE II • Imobilizado", "Uso nas atividades públicas", "São bens tangíveis mantidos para uso na produção, fornecimento de bens ou serviços, fins administrativos ou locação."], ["PARTE II • Intangível", "Sem substância física", "Ativo identificável, não monetário e sem substância física, como softwares separáveis ou direitos de uso."], ["PARTE II • Redução ao valor recuperável", "Impairment no setor público", "Busca garantir que o valor contábil do ativo não esteja acima do valor recuperável ou do potencial de serviços recuperável."], ["PARTE III • Procedimentos específicos", "Temas especiais", "Abrange assuntos como dívida ativa, PPP, consórcios públicos, RPPS, precatórios e outros temas específicos do setor público."], ["PARTE IV • PCASP", "Classes de contas", "Classes 1 a 4: natureza patrimonial. Classes 5 e 6: natureza orçamentária. Classes 7 e 8: natureza de controle."], ["PARTE V • DCASP", "Demonstrações contábeis", "Incluem Balanço Orçamentário, Balanço Financeiro, Balanço Patrimonial, DVP, DFC, DMPL e notas explicativas."]];
+const questions = [["PARTE GERAL", "No âmbito da CASP, o aspecto que se relaciona diretamente ao reconhecimento, mensuração e evidenciação de ativos, passivos e variações patrimoniais é o aspecto:", ["orçamentário.", "patrimonial.", "fiscal.", "financeiro.", "administrativo."], 1, "O aspecto patrimonial trata dos elementos patrimoniais e das variações patrimoniais pelo regime de competência."], ["PARTE GERAL", "Uma informação contábil que permite aos usuários confirmar ou corrigir avaliações anteriores atende principalmente à característica da:", ["relevância.", "comparabilidade.", "tempestividade.", "verificabilidade.", "neutralidade."], 0, "A relevância envolve valor preditivo, confirmatório ou ambos."], ["PARTE GERAL", "O PCASP contribui para a consolidação das contas públicas porque:", ["elimina a necessidade de orçamento.", "padroniza registros contábeis entre entes.", "substitui a Lei de Responsabilidade Fiscal.", "impede registros patrimoniais.", "é utilizado apenas por empresas independentes."], 1, "A padronização do plano de contas favorece comparabilidade e consolidação nacional."], ["PARTE GERAL", "As restrições à informação contábil incluída nas demonstrações abrangem:", ["somente legalidade e publicidade.", "materialidade, custo-benefício e equilíbrio entre características qualitativas.", "apenas comparabilidade.", "apenas tempestividade.", "universalidade e anualidade."], 1, "O MCASP apresenta essas restrições na Parte Geral."], ["PARTE I", "O princípio orçamentário que determina que a LOA deve conter todas as receitas e despesas é o princípio da:", ["exclusividade.", "universalidade.", "não afetação.", "publicidade.", "especificação."], 1, "Universalidade significa abranger todas as receitas e despesas no orçamento."], ["PARTE I", "A receita orçamentária classificada como corrente tende a decorrer de:", ["alienação de bens.", "operações de crédito.", "tributos, contribuições e serviços.", "amortização de empréstimos concedidos.", "transferências de capital."], 2, "Tributos, contribuições, receitas patrimoniais e de serviços são exemplos de receitas correntes."], ["PARTE I", "Na cronologia normal da receita orçamentária, o momento em que os recursos são entregues ao Tesouro é denominado:", ["previsão.", "lançamento.", "arrecadação.", "recolhimento.", "empenho."], 3, "Arrecadação é o recebimento pelo agente; recolhimento é a entrega ao Tesouro."], ["PARTE I", "A estrutura C.G.MM.EE da natureza da despesa representa, respectivamente:", ["categoria econômica, grupo, modalidade de aplicação e elemento.", "classe, grupo, mês e exercício.", "categoria, gestão, meta e elemento.", "controle, grupo, modalidade e evento.", "crédito, gasto, movimentação e empenho."], 0, "Essa é a estrutura básica da classificação por natureza da despesa."], ["PARTE I", "O empenho da despesa pública tem por finalidade principal:", ["extinguir a obrigação financeira.", "verificar o direito adquirido pelo credor.", "criar reserva de dotação orçamentária.", "arrecadar receita vinculada.", "recolher recursos ao Tesouro."], 2, "O empenho reserva dotação para atender despesa específica."], ["PARTE I", "A liquidação da despesa ocorre quando:", ["a dotação é aprovada na LOA.", "se verifica o direito adquirido pelo credor.", "o orçamento é publicado.", "o recurso é arrecadado.", "o crédito adicional é aberto."], 1, "A liquidação comprova entrega, prestação ou ocorrência do fato que gera o direito do credor."], ["PARTE I", "Restos a pagar processados correspondem a despesas:", ["previstas e não lançadas.", "empenhadas, liquidadas e não pagas.", "empenhadas e não liquidadas.", "arrecadadas e não recolhidas.", "pagas sem empenho."], 1, "RPP são despesas já liquidadas, mas ainda não pagas."], ["PARTE I", "A fonte ou destinação de recursos tem como principal utilidade:", ["substituir a classificação funcional.", "controlar a vinculação entre origem e aplicação dos recursos.", "eliminar a necessidade de empenho.", "classificar bens móveis.", "apurar depreciação."], 1, "Ela acompanha a disponibilidade por vinculação legal ou finalidade específica."], ["PARTE II", "No enfoque patrimonial, uma obrigação presente decorrente de evento passado é reconhecida como:", ["ativo.", "passivo.", "receita orçamentária.", "dotação.", "controle devedor."], 1, "Passivo é obrigação presente com expectativa de saída de recursos."], ["PARTE II", "Uma variação patrimonial aumentativa representa:", ["diminuição da situação patrimonial líquida.", "aumento da situação patrimonial líquida não decorrente de contribuição dos proprietários.", "somente receita arrecadada.", "somente entrada de caixa.", "abertura de crédito adicional."], 1, "VPA aumenta a situação patrimonial líquida, independentemente da execução orçamentária."], ["PARTE II", "Materiais destinados à distribuição gratuita no setor público devem ser analisados, em regra, com foco no:", ["maior entre custo e preço de venda.", "menor entre custo e custo corrente de reposição.", "valor de liquidação forçada.", "valor nominal atualizado sempre por juros.", "preço de mercado de venda com lucro."], 1, "Para estoques distribuídos gratuitamente, o menor entre custo e custo corrente de reposição é referência relevante."], ["PARTE II", "Um equipamento utilizado nas atividades administrativas de uma autarquia deve ser registrado, em regra, como:", ["ativo imobilizado.", "ativo intangível.", "estoque para revenda.", "despesa antecipada.", "passivo financeiro."], 0, "Equipamentos tangíveis de uso administrativo são imobilizado."], ["PARTE II", "Um software indispensável ao funcionamento de um equipamento específico, sem o qual o equipamento não opera, tende a ser tratado como:", ["intangível sempre separado.", "estoque.", "parte do imobilizado.", "passivo contingente.", "receita diferida."], 2, "Quando o software é parte integrante do equipamento, acompanha a classificação do imobilizado."], ["PARTE II", "A depreciação de ativo imobilizado representa:", ["entrada de caixa.", "alocação sistemática do valor depreciável ao longo da vida útil.", "redução obrigatória da dotação orçamentária.", "liquidação de despesa.", "arrecadação de receita patrimonial."], 1, "Depreciação distribui o valor depreciável ao longo da vida útil."], ["PARTE II", "A redução ao valor recuperável busca evitar que o ativo esteja registrado por valor:", ["inferior ao caixa disponível.", "superior ao recuperável ou ao potencial de serviços recuperável.", "igual ao custo histórico.", "igual ao valor nominal.", "menor que o passivo circulante."], 1, "O teste confronta valor contábil com valor recuperável/potencial de serviços."], ["PARTE II", "A dívida ativa, após inscrição, representa para o ente público um:", ["passivo exigível.", "ativo.", "resto a pagar.", "crédito empenhado.", "ingresso extraorçamentário sem controle."], 1, "Dívida ativa inscrita representa direito a receber do ente público."], ["PARTE III", "Em uma PPP, a parcela corrente da contraprestação tende a ser classificada como despesa:", ["corrente.", "de capital sempre em investimentos.", "extraorçamentária.", "sem execução orçamentária.", "patrimonial sem orçamento."], 0, "A prestação de serviços vinculada à contraprestação corrente é despesa corrente."], ["PARTE III", "O tratamento de consórcios públicos no MCASP é exemplo de procedimento:", ["contábil específico.", "apenas qualitativo.", "exclusivo da contabilidade privada.", "sem relação com CASP.", "apenas fiscal sem registro."], 0, "Consórcios públicos são tema de procedimentos contábeis específicos."], ["PARTE III", "Precatórios e requisições de pequeno valor, quando tratados no MCASP, relacionam-se a:", ["dívidas judiciais do setor público.", "apenas receitas industriais.", "depreciação de bens móveis.", "classificação funcional da saúde.", "notas explicativas facultativas sempre."], 0, "O tema envolve obrigações decorrentes de decisões judiciais."], ["PARTE IV", "No PCASP, as classes 1, 2, 3 e 4 correspondem à natureza:", ["orçamentária.", "de controle.", "patrimonial.", "financeira exclusivamente.", "extraorçamentária exclusivamente."], 2, "Ativo, passivo/PL, VPD e VPA compõem a natureza patrimonial."], ["PARTE IV", "No PCASP, as classes 5 e 6 são utilizadas para registros de natureza:", ["orçamentária.", "patrimonial.", "tributária apenas.", "de custos apenas.", "de controle apenas."], 0, "Classes 5 e 6 tratam de planejamento e execução orçamentária."], ["PARTE IV", "As classes 7 e 8 do PCASP registram atos potenciais e controles relacionados à natureza:", ["patrimonial.", "orçamentária.", "de controle.", "de resultado econômico.", "de investimento."], 2, "São classes de controles devedores e credores."], ["PARTE V", "O Balanço Orçamentário evidencia principalmente:", ["ativo e passivo circulante.", "receitas e despesas previstas e executadas.", "somente bens móveis.", "apenas custos de serviços.", "somente operações de crédito."], 1, "O BO compara previsão/execução da receita e dotação/execução da despesa."], ["PARTE V", "A Demonstração das Variações Patrimoniais evidencia:", ["alterações qualitativas e quantitativas do patrimônio por VPA e VPD.", "somente orçamento aprovado.", "somente restos a pagar.", "apenas notas explicativas.", "apenas fluxo de caixa de investimentos."], 0, "A DVP apresenta VPAs, VPDs e o resultado patrimonial."], ["PARTE V", "A Demonstração dos Fluxos de Caixa no setor público evidencia fluxos classificados em atividades:", ["correntes e de capital somente.", "operacionais, de investimento e de financiamento.", "empenhadas, liquidadas e pagas.", "orçamentárias e patrimoniais apenas.", "financeiras e permanentes."], 1, "A DFC organiza os fluxos em operacional, investimento e financiamento."], ["PARTE V", "As notas explicativas têm a finalidade de:", ["substituir o balanço patrimonial.", "ampliar e esclarecer informações relevantes das demonstrações.", "eliminar a necessidade de escrituração.", "registrar empenhos.", "autorizar créditos adicionais."], 1, "Notas explicativas complementam as demonstrações com detalhes relevantes."], ["PARTE V", "A DMPL é especialmente aplicável para evidenciar:", ["mutações no patrimônio líquido.", "apenas arrecadação tributária.", "somente empenhos cancelados.", "apenas bens de almoxarifado.", "somente receitas de capital."], 0, "A DMPL demonstra alterações no patrimônio líquido/situação patrimonial líquida."]];
+let student = localStorage.getItem("mcasp_student") || "";
+let cardIndex = Number(localStorage.getItem("mcasp_cardIndex") || 0);
+let qIndex = Number(localStorage.getItem("mcasp_qIndex") || 0);
+let hits = Number(localStorage.getItem("mcasp_hits") || 0);
+let miss = Number(localStorage.getItem("mcasp_miss") || 0);
+let currentScreen = localStorage.getItem("mcasp_screen") || "home";
+let answered = false;
+document.getElementById("student").value = student;
+
+function save(){localStorage.setItem("mcasp_student", student);localStorage.setItem("mcasp_cardIndex", cardIndex);localStorage.setItem("mcasp_qIndex", qIndex);localStorage.setItem("mcasp_hits", hits);localStorage.setItem("mcasp_miss", miss);localStorage.setItem("mcasp_screen", currentScreen);}
+function screen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");currentScreen=id;save();}
+function start(){student=document.getElementById("student").value.trim()||"Aluno";cardIndex=0;qIndex=0;hits=0;miss=0;renderCard();screen("flash");}
+function continueStudy(){student=document.getElementById("student").value.trim()||student||"Aluno"; if(currentScreen==="quiz") renderQuestion(); else if(currentScreen==="flash") renderCard(); else if(currentScreen==="final") renderFinal(); screen(currentScreen==="home"?"flash":currentScreen);}
+function showHome(){screen("home")}
+function flipCard(){document.getElementById("flipInner").classList.toggle("virado")}
+function renderTrail(){
+ let el=document.getElementById("trail"); el.innerHTML="";
+ cards.forEach((c,i)=>{let d=document.createElement("div");d.className="step "+(i<cardIndex?"done":i===cardIndex?"now":"");d.textContent=i+1;el.appendChild(d);});
+}
+function renderCard(){
+ if(cardIndex>=cards.length){renderQuestion();screen("quiz");return}
+ const c=cards[cardIndex];
+ document.getElementById("flipInner").classList.remove("virado");
+ document.getElementById("cardPart").textContent="Cartão "+(cardIndex+1)+" de "+cards.length+" • "+c[0];
+ document.getElementById("cardTitle").textContent=c[1];
+ document.getElementById("cardFront").textContent=c[2];
+ document.getElementById("cardBack").textContent=c[3];
+ document.getElementById("cardBar").style.width=((cardIndex)/cards.length*100)+"%";
+ renderTrail(); save();
+}
+function renderQuestion(){
+ answered=false;
+ if(qIndex>=questions.length){renderFinal();screen("final");return}
+ let q=questions[qIndex];
+ document.getElementById("qPart").textContent="Questão "+(qIndex+1)+" de "+questions.length+" • "+q[0];
+ document.getElementById("qTitle").textContent="Quiz FGV Original";
+ document.getElementById("qText").textContent=q[1];
+ document.getElementById("qBar").style.width=(qIndex/questions.length*100)+"%";
+ const opt=document.getElementById("options"); opt.innerHTML="";
+ q[2].forEach((o,i)=>{let b=document.createElement("button");b.className="opt";b.textContent=String.fromCharCode(65+i)+") "+o;b.onclick=()=>answer(i,b);opt.appendChild(b);});
+ save();
+}
+function answer(i,btn){
+ if(answered) return; answered=true;
+ let q=questions[qIndex];
+ document.querySelectorAll(".opt").forEach((b,idx)=>{if(idx===q[3]) b.classList.add("correct"); if(idx===i && i!==q[3]) b.classList.add("wrong");});
+ if(i===q[3]){hits++;document.getElementById("resultTitle").textContent="✅ Resposta correta!"}else{miss++;document.getElementById("resultTitle").textContent="❌ Resposta incorreta!"}
+ document.getElementById("explain").innerHTML="<b>Gabarito: "+String.fromCharCode(65+q[3])+"</b><br><br>"+q[4];
+ save();
+ setTimeout(()=>screen("comment"),650);
+}
+function nextQuestion(){qIndex++;renderQuestion();screen("quiz");}
+function goNext(){
+ if(currentScreen==="flash"){cardIndex++;renderCard();screen(cardIndex>=cards.length?"quiz":"flash");}
+ else if(currentScreen==="quiz"){ if(!answered) alert("Responda a questão para avançar.");}
+ else if(currentScreen==="comment"){nextQuestion();}
+ else if(currentScreen==="home"){start();}
+ else if(currentScreen==="final"){showHome();}
+}
+function goBack(){
+ if(currentScreen==="flash" && cardIndex>0){cardIndex--;renderCard();}
+ else if(currentScreen==="quiz" && qIndex>0){qIndex--;renderQuestion();}
+ else if(currentScreen==="comment"){screen("quiz");}
+ else showHome();
+}
+function renderFinal(){
+ document.getElementById("finalTitle").textContent="🏆 Parabéns, "+(student||"Aluno")+"!";
+ document.getElementById("finalText").textContent="Você concluiu a trilha MCASP 11ª Edição com "+questions.length+" questões originais no estilo FGV.";
+ document.getElementById("hits").textContent=hits; document.getElementById("miss").textContent=miss; save();
+}
+function restart(){ if(confirm("Deseja reiniciar toda a trilha?")){cardIndex=0;qIndex=0;hits=0;miss=0;renderCard();screen("flash");}}
+function sendProgress(){
+ student=document.getElementById("student").value.trim()||student||"Aluno";
+ const total=questions.length; const txt=`Olá, Professor Moreira! Sou ${student}. Meu progresso na Trilha MCASP 11ª Edição: Cartões ${Math.min(cardIndex,cards.length)}/${cards.length}; Questões ${Math.min(qIndex,total)}/${total}; Acertos ${hits}; Erros ${miss}.`;
+ window.open("https://wa.me/5561985323574?text="+encodeURIComponent(txt),"_blank");
+}
+if(currentScreen==="flash") renderCard(); if(currentScreen==="quiz") renderQuestion(); if(currentScreen==="final") renderFinal(); screen(currentScreen);
+</script>
+</body>
+</html>
